@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Férias</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; padding: 1rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { margin-bottom: 2rem; }
+    h1 { font-size: 2rem; font-weight: 800; color: #4f46e5; }
+    .subtitle { color: #64748b; margin-top: 0.25rem; font-size: 0.875rem; }
+    .grid { display: grid; gap: 1.5rem; }
+    @media (min-width: 1024px) { .grid { grid-template-columns: 1fr 2fr; } }
+    .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card-title { font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b; }
+    .section-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .func-list { display: grid; gap: 0.75rem; }
+    .func-card { padding: 1rem; border-radius: 1rem; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
+    .func-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(79,70,229,0.1); }
+    .func-card.selected { border-color: #4f46e5; background: #eef2ff; box-shadow: 0 0 0 2px #c7d2fe; }
+    .func-header { display: flex; gap: 0.75rem; align-items: flex-start; }
+    .func-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; flex-shrink: 0; }
+    .func-info { flex: 1; min-width: 0; }
+    .func-name { font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .func-role { font-size: 0.75rem; color: #64748b; }
+    .badge { display: inline-block; margin-top: 0.5rem; font-size: 0.75rem; font-weight: 500; padding: 0.125rem 0.5rem; border-radius: 9999px; }
+    .badge-free { background: #d1fae5; color: #065f46; }
+    .badge-busy { background: #fef3c7; color: #92400e; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.25rem; }
+    input[type="date"], select { width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; font-size: 0.875rem; background: white; }
+    input[type="date"]:focus, select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.2); }
+    .duracao-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .duracao-btn { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; background: white; font-size: 0.875rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.2s; }
+    .duracao-btn:hover { border-color: #a5b4fc; }
+    .duracao-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn-secondary { background: #e2e8f0; color: #475569; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+    .hint { margin-top: 1rem; padding: 0.5rem 0.75rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; font-size: 0.875rem; color: #92400e; }
+    table { width: 100%; font-size: 0.875rem; border-collapse: collapse; }
+    th { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    tr:hover { background: #f8fafc; }
+    .date-badge { display: inline-flex; align-items: center; gap: 0.25rem; background: #eef2ff; color: #4f46e5; font-size: 0.875rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.5rem; }
+    .action-link { font-size: 0.875rem; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; border: none; background: none; padding: 0; }
+    .action-edit { color: #4f46e5; }
+    .action-edit:hover { color: #3730a3; }
+    .action-cancel { color: #ef4444; }
+    .action-cancel:hover { color: #b91c1c; }
+    .empty-state { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.875rem; }
+    .alert { padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid; font-size: 0.875rem; font-weight: 500; margin-bottom: 1.5rem; }
+    .alert-success { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+    .alert-error { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .alert-info { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+    .hidden { display: none; }
+    .table-wrapper { overflow-x: auto; }
+    .table-wrapper-scroll { overflow-y: auto; max-height: 20rem; }
+    .sticky-header { position: sticky; top: 0; background: white; z-index: 1; }
+    .backup-status { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; padding: 0.5rem; background: #f1f5f9; border-radius: 0.5rem; }
+    .backup-status.success { color: #065f46; background: #d1fae5; }
+    .backup-status.error { color: #991b1b; background: #fee2e2; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏖️ Controle de Férias</h1>
+      <p class="subtitle">Selecione um funcionário e reserve o mês/ano desejado. Apenas um funcionário por período.</p>
+      <div id="backupStatus" class="backup-status hidden"></div>
+    </header>
+
+    <div id="mensagem" class="alert hidden"></div>
+
+    <div class="grid">
+      <section>
+        <h2 class="section-title">Funcionários</h2>
+        <div id="listaFuncionarios" class="func-list"></div>
+      </section>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <section class="card">
+          <h2 id="tituloForm" class="card-title">📅 Reservar férias</h2>
+          <form id="formReserva">
+            <div class="form-group">
+              <label for="dataInicio">Data de início</label>
+              <input type="date" id="dataInicio" required>
+            </div>
+            <div class="form-group">
+              <label>Duração das férias</label>
+              <div class="duracao-group" id="containerDuracao">
+                <button type="button" data-duracao="10" class="duracao-btn">10 dias</button>
+                <button type="button" data-duracao="15" class="duracao-btn">15 dias</button>
+                <button type="button" data-duracao="20" class="duracao-btn">20 dias</button>
+                <button type="button" data-duracao="30" class="duracao-btn">30 dias</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="dataFim">Data de fim <span id="fimAuto" style="font-size: 0.75rem; color: #4f46e5;"></span></label>
+              <input type="date" id="dataFim" readonly>
+            </div>
+            <div class="btn-group">
+              <button type="submit" id="btnSalvar" class="btn btn-primary" disabled>✅ Reservar férias</button>
+              <button type="button" id="btnCancelarEdicao" class="btn btn-secondary hidden">✖ Cancelar edição</button>
+            </div>
+          </form>
+          <p id="dicaSelecao" class="hint">👆 Selecione um funcionário na lista ao lado para habilitar a reserva.</p>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">🗓️ Férias registradas</h2>
+          <div id="reservasVazias" class="empty-state hidden">Nenhuma reserva registrada ainda.</div>
+          <div class="table-wrapper">
+            <table id="tabelaReservas">
+              <thead>
+                <tr>
+                  <th>Funcionário</th>
+                  <th>Início</th>
+                  <th>Fim</th>
+                  <th style="text-align: right;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="corpoReservas"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">✈️ Dicas e promoções de viagem</h2>
+          <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Sugestões personalizadas com base no período das suas férias.</p>
+          <div id="dicasViagem"></div>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.75rem; border-top: 1px solid #f1f5f9; padding-top: 0.5rem;">
+            ⚠️ Preços, disponibilidade e condições promocionais são <strong>estimativas</strong>. Consulte sempre as fontes oficiais.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">📜 Histórico de férias</h2>
+          <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Férias já realizadas pelos funcionários.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem; color: #475569; font-weight: 500;">Filtrar por ano:</label>
+            <select id="filtroAno" style="width: auto;">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div id="historicoVazio" class="empty-state hidden">Nenhum registro no histórico.</div>
+          <div class="table-wrapper table-wrapper-scroll">
+            <table id="tabelaHistorico">
+              <thead class="sticky-header">
+                <tr>
+                  <th>Funcionário</th>
+                  <th>Período</th>
+                </tr>
+              </thead>
+              <tbody id="corpoHistorico"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">👥 Gerenciar funcionários</h2>
+          <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Adicione ou remova funcionários da lista. Requer senha de administrador.</p>
+          <div class="btn-group">
+            <button type="button" onclick="abrirFormAdicionarFuncionario()" class="btn btn-success">➕ Adicionar funcionário</button>
+            <button type="button" onclick="excluirFuncionarioSelecionado()" class="btn btn-danger">🗑️ Excluir funcionário selecionado</button>
+          </div>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.75rem;">🔒 A senha é solicitada antes de cada operação.</p>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">📋 Registro de auditoria</h2>
+          <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Histórico de todas as operações realizadas no sistema.</p>
+          <div id="auditoriaVazia" class="empty-state hidden">Nenhuma operação registrada ainda.</div>
+          <div class="table-wrapper table-wrapper-scroll">
+            <table id="tabelaAuditoria">
+              <thead class="sticky-header">
+                <tr>
+                  <th>Data/Hora</th>
+                  <th>Ação</th>
+                  <th>Detalhes</th>
+                </tr>
+              </thead>
+              <tbody id="corpoAuditoria"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== CONFIGURAÇÃO ====================
+    const SENHA_ADMIN = '739182645';
+    const STORAGE_KEY = 'controleFeriasData';
+    const NOMES_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    // ==================== DADOS INICIAIS ====================
+    const funcionariosPadrao = [
+      { id: 1, nome: 'PAULO HENRIQUE HEBELLER', cargo: 'Funcionário' },
+      { id: 2, nome: 'KEST DIONI FERNANDES NOBRE', cargo: 'Funcionário' },
+      { id: 3, nome: 'ALAN KARDEC GONZAGA DE SOUZA', cargo: 'Funcionário' },
+      { id: 4, nome: 'WILSON DOS SANTOS FRANCA', cargo: 'Funcionário' },
+      { id: 5, nome: 'EDIRLEI JOSE SILVA', cargo: 'Funcionário' },
+      { id: 6, nome: 'MATIAS FRANCISCO DOS SANTOS', cargo: 'Funcionário' },
+      { id: 7, nome: 'ALEXANDER DA CRUZ SILVA', cargo: 'Funcionário' },
+      { id: 8, nome: 'JEFFERSON DIEGO LIMA DA MATA', cargo: 'Funcionário' },
+      { id: 9, nome: 'FABRICIANO CLAUDIO DA SILVA', cargo: 'Funcionário' }
+    ];
+
+    // ==================== ESTADO ====================
+    let funcionarios = [];
+    let reservas = [];
+    let historico = [];
+    let auditoria = [];
+    let proximoId = 10;
+    let funcionarioSelecionadoId = null;
+    let reservaEmEdicaoId = null;
+    let duracaoSelecionada = null;
+    let msgTimeout = null;
+
+    // ==================== PERSISTÊNCIA (localStorage) ====================
+    function carregarDados() {
+      try {
+        const dadosSalvos = localStorage.getItem(STORAGE_KEY);
+        if (dadosSalvos) {
+          const dados = JSON.parse(dadosSalvos);
+          funcionarios = dados.funcionarios || funcionariosPadrao;
+          reservas = dados.reservas || [];
+          historico = dados.historico || [];
+          auditoria = dados.auditoria || [];
+          proximoId = dados.proximoId || 10;
+          mostrarStatusBackup('success', `✅ Dados carregados do localStorage (${funcionarios.length} funcionários, ${reservas.length} reservas)`);
+        } else {
+          funcionarios = [...funcionariosPadrao];
+          reservas = [];
+          historico = [];
+          auditoria = [];
+          proximoId = 10;
+          mostrarStatusBackup('info', 'ℹ️ Primeira execução - dados padrão carregados');
+        }
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+        funcionarios = [...funcionariosPadrao];
+        reservas = [];
+        historico = [];
+        auditoria = [];
+        proximoId = 10;
+        mostrarStatusBackup('error', '⚠️ Erro ao carregar dados - usando padrão');
+      }
+    }
+
+    function salvarDados() {
+      try {
+        const dados = {
+          funcionarios,
+          reservas,
+          historico,
+          auditoria,
+          proximoId,
+          atualizadoEm: new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+        criarBackupAutomatico();
+      } catch (err) {
+        console.error('Erro ao salvar dados:', err);
+        mostrarStatusBackup('error', '⚠️ Erro ao salvar no localStorage');
+      }
+    }
+
+    // ==================== BACKUP AUTOMÁTICO ====================
+    function criarBackupAutomatico() {
+      try {
+        const agora = new Date();
+        const timestamp = agora.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const nomeArquivo = `backup-${timestamp}.json`;
+        
+        const dados = {
+          exportadoEm: agora.toISOString(),
+          funcionarios,
+          reservas,
+          historico,
+          auditoria,
+          proximoId
+        };
+        
+        const json = JSON.stringify(dados, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log(`✅ Backup criado: ${nomeArquivo}`);
+      } catch (err) {
+        console.error('Erro ao criar backup:', err);
+        mostrarStatusBackup('error', '⚠️ Erro ao criar backup automático');
+      }
+    }
+
+    function mostrarStatusBackup(tipo, mensagem) {
+      const el = document.getElementById('backupStatus');
+      el.textContent = mensagem;
+      el.className = `backup-status ${tipo}`;
+      el.classList.remove('hidden');
+      
+      setTimeout(() => {
+        el.classList.add('hidden');
+      }, 5000);
+    }
+
+    // ==================== HELPERS ====================
+    function getFuncionario(id) {
+      return funcionarios.find(f => f.id === id);
+    }
+
+    function formatarData(dataISO) {
+      if (!dataISO) return '';
+      const [ano, mes, dia] = dataISO.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function iniciais(nome) {
+      const partes = nome.trim().split(/\s+/);
+      const prim = partes[0] ? partes[0][0] : '';
+      const ult = partes.length > 1 ? partes[partes.length - 1][0] : '';
+      return (prim + ult).toUpperCase();
+    }
+
+    function mostrarMensagem(tipo, texto) {
+      const el = document.getElementById('mensagem');
+      el.className = `alert alert-${tipo === 'erro' ? 'error' : 'success'}`;
+      el.textContent = texto;
+      el.classList.remove('hidden');
+
+      clearTimeout(msgTimeout);
+      msgTimeout = setTimeout(() => {
+        el.classList.add('hidden');
+      }, 5000);
+    }
+
+    // ==================== VALIDAÇÃO ====================
+    function datasSobrepoem(inicio1, fim1, inicio2, fim2) {
+      return inicio1 <= fim2 && inicio2 <= fim1;
+    }
+
+    function encontrarConflito(inicio, fim, ignorarId = null) {
+      return reservas.find(r => {
+        if (r.id === ignorarId) return false;
+        return datasSobrepoem(inicio, fim, r.inicio, r.fim);
+      });
+    }
+
+    // ==================== AUDITORIA ====================
+    function registrarAuditoria(acao, detalhes) {
+      auditoria.push({
+        dataHora: new Date().toLocaleString('pt-BR'),
+        acao: acao,
+        detalhes: detalhes
+      });
+    }
+
+    // ==================== RENDERIZAÇÃO ====================
+    function renderFuncionarios() {
+      const container = document.getElementById('listaFuncionarios');
+      container.innerHTML = funcionarios.map(f => {
+        const reserva = reservas.find(r => r.funcionarioId === f.id);
+        const selecionado = f.id === funcionarioSelecionadoId;
+        const classeSelecionado = selecionado ? 'selected' : '';
+        
+        let badge = '';
+        if (reserva) {
+          badge = `<span class="badge badge-busy">Férias: ${formatarData(reserva.inicio)} a ${formatarData(reserva.fim)}</span>`;
+        } else {
+          badge = `<span class="badge badge-free">Livre para reserva</span>`;
+        }
+
+        return `
+          <button type="button" onclick="selecionarFuncionario(${f.id})" class="func-card ${classeSelecionado}">
+            <div class="func-header">
+              <div class="func-avatar">${iniciais(f.nome)}</div>
+              <div class="func-info">
+                <div class="func-name">${f.nome}</div>
+                <div class="func-role">${f.cargo}</div>
+                ${badge}
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderReservas() {
+      const corpo = document.getElementById('corpoReservas');
+      const vazio = document.getElementById('reservasVazias');
+      const tabela = document.getElementById('tabelaReservas');
+
+      if (reservas.length === 0) {
+        vazio.classList.remove('hidden');
+        tabela.style.display = 'none';
+        return;
+      }
+
+      vazio.classList.add('hidden');
+      tabela.style.display = '';
+
+      const ordenadas = [...reservas].sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+      corpo.innerHTML = ordenadas.map(r => {
+        const f = getFuncionario(r.funcionarioId);
+        if (!f) return '';
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 500;">${f.nome}</div>
+              <div style="font-size: 0.75rem; color: #64748b;">${f.cargo}</div>
+            </td>
+            <td><span class="date-badge">📆 ${formatarData(r.inicio)}</span></td>
+            <td><span class="date-badge">📆 ${formatarData(r.fim)}</span></td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="action-link action-edit" onclick="iniciarEdicao(${r.id})">Alterar</button>
+              <button class="action-link action-cancel" onclick="cancelarReserva(${r.id})" style="margin-left: 0.75rem;">Cancelar</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderHistorico() {
+      const corpo = document.getElementById('corpoHistorico');
+      const vazio = document.getElementById('historicoVazio');
+      const tabela = document.getElementById('tabelaHistorico');
+      const filtroAno = document.getElementById('filtroAno');
+
+      const anoSelecionado = parseInt(filtroAno.value, 10) || null;
+      const registros = historico
+        .filter(h => {
+          const anoInicio = new Date(h.inicio).getFullYear();
+          return !anoSelecionado || anoInicio === anoSelecionado;
+        })
+        .sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+      if (registros.length === 0) {
+        vazio.classList.remove('hidden');
+        tabela.style.display = 'none';
+        return;
+      }
+
+      vazio.classList.add('hidden');
+      tabela.style.display = '';
+
+      const agrupado = {};
+      registros.forEach(h => {
+        const f = getFuncionario(h.funcionarioId);
+        if (!f) return;
+        const chave = `${f.nome}|${h.inicio.slice(0, 4)}`;
+        if (!agrupado[chave]) agrupado[chave] = { nome: f.nome, ano: h.inicio.slice(0, 4), periodos: [] };
+        agrupado[chave].periodos.push(h);
+      });
+
+      corpo.innerHTML = Object.values(agrupado).map(g => {
+        const periodoHtml = g.periodos.map(p => {
+          return `<span class="date-badge">🏖️ ${formatarData(p.inicio)} a ${formatarData(p.fim)}</span>`;
+        }).join(' ');
+
+        return `
+          <tr>
+            <td style="font-weight: 500;">${g.nome}</td>
+            <td>${periodoHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderAuditoria() {
+      const corpo = document.getElementById('corpoAuditoria');
+      const vazio = document.getElementById('auditoriaVazia');
+      const tabela = document.getElementById('tabelaAuditoria');
+
+      if (auditoria.length === 0) {
+        vazio.classList.remove('hidden');
+        tabela.style.display = 'none';
+        return;
+      }
+
+      vazio.classList.add('hidden');
+      tabela.style.display = '';
+
+      const registrosOrdenados = [...auditoria].reverse();
+
+      corpo.innerHTML = registrosOrdenados.map(reg => {
+        let corAcao = 'background: #fef3c7; color: #92400e;';
+        if (reg.acao.includes('CRIAÇÃO')) corAcao = 'background: #d1fae5; color: #065f46;';
+        else if (reg.acao.includes('ALTERAÇÃO')) corAcao = 'background: #dbeafe; color: #1e40af;';
+        else if (reg.acao.includes('CANCELAMENTO')) corAcao = 'background: #fee2e2; color: #991b1b;';
+
+        let detalhesHtml = '<span style="color: #94a3b8;">—</span>';
+        if (reg.detalhes) {
+          const d = reg.detalhes;
+          let info = [];
+          if (d.reservaId) info.push(`Reserva #${d.reservaId}`);
+          if (d.funcionario && d.funcionario !== '—') info.push(`Responsável: ${d.funcionario}`);
+          if (d.funcionarioAlvo) info.push(`Funcionário: ${d.funcionarioAlvo}`);
+          if (d.dadosAnteriores) {
+            info.push(`Anterior: ${formatarData(d.dadosAnteriores.inicio)} a ${formatarData(d.dadosAnteriores.fim)}`);
+          }
+          if (d.novosDados) {
+            info.push(`Novo: ${formatarData(d.novosDados.inicio)} a ${formatarData(d.novosDados.fim)}`);
+          }
+          detalhesHtml = info.join(' · ');
+        }
+
+        return `
+          <tr>
+            <td style="white-space: nowrap; font-size: 0.75rem; color: #64748b;">${reg.dataHora}</td>
+            <td><span style="display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 0.125rem 0.5rem; border-radius: 9999px; ${corAcao}">${reg.acao}</span></td>
+            <td style="font-size: 0.875rem; color: #475569;">${detalhesHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==================== FORMULÁRIO ====================
+    function atualizarFormulario() {
+      const f = getFuncionario(funcionarioSelecionadoId);
+      const btnSalvar = document.getElementById('btnSalvar');
+      const btnCancelarEdicao = document.getElementById('btnCancelarEdicao');
+      const dica = document.getElementById('dicaSelecao');
+      const titulo = document.getElementById('tituloForm');
+
+      if (reservaEmEdicaoId !== null && f) {
+        titulo.textContent = `✏️ Alterar férias de ${f.nome}`;
+        btnSalvar.textContent = '💾 Salvar alteração';
+        btnCancelarEdicao.classList.remove('hidden');
+        dica.classList.add('hidden');
+        btnSalvar.disabled = false;
+        return;
+      }
+
+      if (f) {
+        titulo.textContent = `📅 Reservar férias de ${f.nome}`;
+        btnSalvar.textContent = '✅ Reservar férias';
+        btnSalvar.disabled = false;
+      } else {
+        titulo.textContent = '📅 Reservar férias';
+        btnSalvar.textContent = '✅ Reservar férias';
+        btnSalvar.disabled = true;
+      }
+
+      btnCancelarEdicao.classList.add('hidden');
+      dica.classList.toggle('hidden', f !== null);
+    }
+
+    function resetForm(renderizar = true) {
+      funcionarioSelecionadoId = null;
+      reservaEmEdicaoId = null;
+      duracaoSelecionada = null;
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
+      document.getElementById('fimAuto').textContent = '';
+      document.querySelectorAll('.duracao-btn').forEach(btn => btn.classList.remove('active'));
+      atualizarFormulario();
+      if (renderizar) renderFuncionarios();
+    }
+
+    // ==================== AÇÕES ====================
+    function selecionarFuncionario(id) {
+      const f = getFuncionario(id);
+      if (!f) return;
+
+      if (reservaEmEdicaoId !== null) {
+        reservaEmEdicaoId = null;
+        document.getElementById('dataInicio').value = '';
+        document.getElementById('dataFim').value = '';
+      }
+
+      funcionarioSelecionadoId = id;
+      atualizarFormulario();
+      renderFuncionarios();
+    }
+
+    function iniciarEdicao(id) {
+      const r = reservas.find(x => x.id === id);
+      if (!r) return;
+
+      const f = getFuncionario(r.funcionarioId);
+      if (!f) return;
+
+      funcionarioSelecionadoId = r.funcionarioId;
+      reservaEmEdicaoId = id;
+      document.getElementById('dataInicio').value = r.inicio;
+      document.getElementById('dataFim').value = r.fim;
+
+      atualizarFormulario();
+      renderFuncionarios();
+    }
+
+    function cancelarEdicao() {
+      resetForm(true);
+      mostrarMensagem('erro', 'Edição cancelada.');
+    }
+
+    function selecionarDuracao(dias) {
+      duracaoSelecionada = dias;
+      document.querySelectorAll('.duracao-btn').forEach(btn => btn.classList.remove('active'));
+      const btn = document.querySelector(`.duracao-btn[data-duracao="${dias}"]`);
+      if (btn) btn.classList.add('active');
+      atualizarDataFimAutomatico();
+    }
+
+    function atualizarDataFimAutomatico() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim');
+      const fimAuto = document.getElementById('fimAuto');
+
+      if (!dataInicio || !duracaoSelecionada) {
+        dataFim.value = '';
+        fimAuto.textContent = '';
+        return;
+      }
+
+      const inicio = new Date(dataInicio + 'T00:00:00');
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + (duracaoSelecionada - 1));
+
+      const fimISO = fim.toISOString().split('T')[0];
+      dataFim.value = fimISO;
+
+      const [ano, mes, dia] = fimISO.split('-');
+      fimAuto.textContent = `(auto: ${dia}/${mes}/${ano})`;
+    }
+
+    function salvar() {
+      const f = getFuncionario(funcionarioSelecionadoId);
+      if (!f) {
+        mostrarMensagem('erro', 'Selecione um funcionário antes de reservar.');
+        return;
+      }
+
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      if (!dataInicio) {
+        mostrarMensagem('erro', 'Informe a data de início das férias.');
+        return;
+      }
+      if (!duracaoSelecionada && reservaEmEdicaoId === null) {
+        mostrarMensagem('erro', 'Selecione a duração das férias (10, 15, 20 ou 30 dias).');
+        return;
+      }
+      if (!dataFim) {
+        mostrarMensagem('erro', 'Não foi possível calcular a data de fim. Selecione a duração.');
+        return;
+      }
+      if (dataFim < dataInicio) {
+        mostrarMensagem('erro', 'A data de fim não pode ser anterior à data de início.');
+        return;
+      }
+
+      const conflito = encontrarConflito(dataInicio, dataFim, reservaEmEdicaoId);
+      if (conflito) {
+        const dono = getFuncionario(conflito.funcionarioId);
+        mostrarMensagem('erro', `⛔ Conflito: ${formatarData(dataInicio)} a ${formatarData(dataFim)} já está reservado para ${dono ? dono.nome : 'outro funcionário'}.`);
+        return;
+      }
+
+      const responsavel = f.nome;
+
+      if (reservaEmEdicaoId !== null) {
+        const r = reservas.find(x => x.id === reservaEmEdicaoId);
+        if (r) {
+          const dadosAnteriores = { funcionarioId: r.funcionarioId, inicio: r.inicio, fim: r.fim };
+          r.inicio = dataInicio;
+          r.fim = dataFim;
+
+          registrarAuditoria('ALTERAÇÃO DE RESERVA', {
+            reservaId: r.id,
+            funcionario: responsavel,
+            dadosAnteriores,
+            novosDados: { funcionarioId: f.id, inicio: dataInicio, fim: dataFim }
+          });
+
+          mostrarMensagem('sucesso', `✅ Reserva de ${f.nome} alterada para ${formatarData(dataInicio)} a ${formatarData(dataFim)}.`);
+        }
+      } else {
+        const novaReserva = { id: proximoId++, funcionarioId: f.id, inicio: dataInicio, fim: dataFim };
+        reservas.push(novaReserva);
+
+        registrarAuditoria('CRIAÇÃO DE RESERVA', {
+          reservaId: novaReserva.id,
+          funcionario: responsavel,
+          novosDados: { funcionarioId: f.id, inicio: dataInicio, fim: dataFim }
+        });
+
+        mostrarMensagem('sucesso', `✅ Férias de ${f.nome} reservadas de ${formatarData(dataInicio)} a ${formatarData(dataFim)}.`);
+      }
+
+      salvarDados();
+      resetForm(true);
+      renderReservas();
+      renderAuditoria();
+    }
+
+    function cancelarReserva(id) {
+      const r = reservas.find(x => x.id === id);
+      if (!r) return;
+
+      const f = getFuncionario(r.funcionarioId);
+      const periodo = `${formatarData(r.inicio)} a ${formatarData(r.fim)}`;
+
+      if (window.confirm(`Cancelar a reserva de ${f ? f.nome : 'funcionário'} de ${periodo}?`)) {
+        const dadosRemovidos = { funcionarioId: r.funcionarioId, inicio: r.inicio, fim: r.fim };
+        reservas = reservas.filter(x => x.id !== id);
+
+        if (reservaEmEdicaoId === id) resetForm(false);
+
+        registrarAuditoria('CANCELAMENTO DE RESERVA', {
+          reservaId: id,
+          funcionario: f ? f.nome : 'Não identificado',
+          dadosAnteriores: dadosRemovidos
+        });
+
+        mostrarMensagem('sucesso', `🗑️ Reserva de ${f ? f.nome : 'funcionário'} (${periodo}) cancelada.`);
+        salvarDados();
+        renderFuncionarios();
+        renderReservas();
+        renderAuditoria();
+      }
+    }
+
+    // ==================== GERENCIAMENTO DE FUNCIONÁRIOS ====================
+    function solicitarSenhaAdmin() {
+      const senha = window.prompt('🔒 Digite a senha de administrador:');
+      if (senha === null) {
+        mostrarMensagem('erro', 'Operação cancelada.');
+        return null;
+      }
+      return senha;
+    }
+
+    function validarSenha(senha) {
+      return senha === SENHA_ADMIN;
+    }
+
+    function abrirFormAdicionarFuncionario() {
+      const senha = solicitarSenhaAdmin();
+      if (senha === null) return;
+
+      if (!validarSenha(senha)) {
+        mostrarMensagem('erro', '⛔ Senha incorreta.');
+        return;
+      }
+
+      const nome = window.prompt('Nome do novo funcionário:');
+      if (!nome || nome.trim() === '') {
+        mostrarMensagem('erro', 'Nome não informado.');
+        return;
+      }
+
+      const novoId = funcionarios.length ? Math.max(...funcionarios.map(f => f.id)) + 1 : 1;
+      funcionarios.push({ id: novoId, nome: nome.trim().toUpperCase(), cargo: 'Funcionário' });
+
+      registrarAuditoria('INCLUSÃO DE FUNCIONÁRIO', {
+        funcionario: 'Administrador',
+        funcionarioAlvo: nome.trim().toUpperCase(),
+        idFuncionario: novoId
+      });
+
+      salvarDados();
+      renderFuncionarios();
+      renderAuditoria();
+      mostrarMensagem('sucesso', `✅ Funcionário ${nome.trim().toUpperCase()} adicionado.`);
+    }
+
+    function excluirFuncionarioSelecionado() {
+      if (!funcionarioSelecionadoId) {
+        mostrarMensagem('erro', 'Selecione um funcionário na lista.');
+        return;
+      }
+      excluirFuncionario(funcionarioSelecionadoId);
+    }
+
+    function excluirFuncionario(id) {
+      const f = getFuncionario(id);
+      if (!f) return;
+
+      const senha = solicitarSenhaAdmin();
+      if (senha === null) return;
+
+      if (!validarSenha(senha)) {
+        mostrarMensagem('erro', '⛔ Senha incorreta.');
+        return;
+      }
+
+      const temReservas = reservas.some(r => r.funcionarioId === id);
+      if (temReservas) {
+        mostrarMensagem('erro', `⛔ Não é possível excluir ${f.nome}: possui reservas ativas.`);
+        return;
+      }
+
+      if (window.confirm(`Excluir ${f.nome}?`)) {
+        historico = historico.filter(h => h.funcionarioId !== id);
+        funcionarios = funcionarios.filter(x => x.id !== id);
+
+        registrarAuditoria('EXCLUSÃO DE FUNCIONÁRIO', {
+          funcionario: 'Administrador',
+          funcionarioAlvo: f.nome,
+          idFuncionario: id
+        });
+
+        salvarDados();
+        renderFuncionarios();
+        renderAuditoria();
+        mostrarMensagem('sucesso', `🗑️ Funcionário ${f.nome} removido.`);
+      }
+    }
+
+    // ==================== INICIALIZAÇÃO ====================
+    document.getElementById('formReserva').addEventListener('submit', e => {
+      e.preventDefault();
+      salvar();
+    });
+
+    document.getElementById('dataInicio').addEventListener('change', atualizarDataFimAutomatico);
+
+    document.querySelectorAll('.duracao-btn').forEach(btn => {
+      btn.addEventListener('click', () => selecionarDuracao(parseInt(btn.dataset.duracao)));
+    });
+
+    document.getElementById('btnCancelarEdicao').addEventListener('click', cancelarEdicao);
+
+    const filtroAno = document.getElementById('filtroAno');
+    filtroAno.addEventListener('change', renderHistorico);
+
+    // Carregar dados e renderizar
+    carregarDados();
+    renderFuncionarios();
+    renderReservas();
+    renderHistorico();
+    renderAuditoria();
+    atualizarFormulario();
+
+    // Preencher filtro de anos
+    const anos = [...new Set(historico.map(h => new Date(h.inicio).getFullYear()))].sort((a, b) => b - a);
+    anos.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      filtroAno.appendChild(opt);
+    });
+  </script>
+</body>
+</html>
